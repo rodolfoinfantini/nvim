@@ -1,0 +1,14 @@
+package @JAVA_PACKAGE@;
+
+import org.springframework.stereotype.Service;
+
+import @JAVA_PACKAGE@.interfaces.@JAVA_INTERFACE_NAME@;
+import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class @FILENAME@ implements @JAVA_INTERFACE_NAME@ {
+
+}

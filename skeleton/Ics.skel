@@ -1,0 +1,5 @@
+namespace @CS_NAMESPACE@;
+
+public interface @FILENAME@ {
+
+}

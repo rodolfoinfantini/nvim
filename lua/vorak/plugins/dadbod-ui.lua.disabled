@@ -1,0 +1,14 @@
+return {
+    "kristijanhusak/vim-dadbod-ui",
+    lazy = true,
+    event = "VeryLazy",
+    dependencies = {
+        "tpope/vim-dadbod"
+    },
+    config = function()
+        vim.g.db_ui_use_nerd_fonts = 1
+        vim.cmd([[
+            command! -nargs=0 Db :tabnew | :DBUIToggle
+        ]])
+    end
+}
