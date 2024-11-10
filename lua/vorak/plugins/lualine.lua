@@ -61,8 +61,9 @@ return {
             winbar = {
                 lualine_a = {
                     {
-                        '%{%get(b:, "coc_symbol_line", "")%}',
+                        "navic",
                         color = 'none',
+                        navic_opts = nil
                     },
                 },
                 lualine_b = { folder_icon },

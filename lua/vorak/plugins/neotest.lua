@@ -47,13 +47,13 @@ return {
             require("neotest").run.run(path .. "/src")
         end, { noremap = true })
 
-        vim.keymap.set("n", "<leader>b", function()
-            local path = projectFolder()
-            if path == nil then
-                print("No project folder found")
-                return
-            end
-            vim.cmd("!cd " .. path .. " && mvn clean install -DskipTests && cd -")
-        end)
+        -- vim.keymap.set("n", "<leader>b", function()
+        -- local path = projectFolder()
+        -- if path == nil then
+        -- print("No project folder found")
+        -- return
+        -- end
+        -- vim.cmd("!cd " .. path .. " && mvn clean install -DskipTests && cd -")
+        -- end)
     end
 }
