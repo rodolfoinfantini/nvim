@@ -29,5 +29,30 @@ return {
     },
     config = function()
         vim.api.nvim_set_hl(0, "DapStoppedLine", { default = true, link = "Visual" })
+
+        local dap = require("dap")
+        dap.adapters.coreclr = function(cb, config)
+            print('Building project')
+            vim.fn.system('dotnet build')
+            print('Build done')
+            -- if config.preLaunchTask then vim.fn.system(config.preLaunchTask) end
+            local adapter = {
+                type = "executable",
+                command = "netcoredbg",
+                args = { '--interpreter=vscode' }
+            }
+            cb(adapter)
+        end
+
+        -- dap.configurations.cs = {
+        -- {
+        -- type = "coreclr",
+        -- name = "launch - netcoredbg",
+        -- request = "launch",
+        -- program = function()
+        -- return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+        -- end,
+        -- },
+        -- }
     end
 }

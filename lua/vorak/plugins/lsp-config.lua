@@ -5,8 +5,8 @@ return {
         'williamboman/mason-lspconfig.nvim',
         'hrsh7th/nvim-cmp',
         'hrsh7th/cmp-nvim-lsp',
-        'zbirenbaum/copilot.lua',
-        'zbirenbaum/copilot-cmp',
+        -- 'zbirenbaum/copilot.lua',
+        -- 'zbirenbaum/copilot-cmp',
         'hrsh7th/cmp-buffer',
         'hrsh7th/cmp-path',
         'onsails/lspkind.nvim',
@@ -63,6 +63,33 @@ return {
             if client.server_capabilities.documentSymbolProvider then
                 navic.attach(client, bufnr)
             end
+
+            vim.api.nvim_create_autocmd('CursorHold', {
+                pattern = '<buffer>',
+                callback = function()
+                    if client.server_capabilities.documentHighlightProvider then
+                        vim.lsp.buf.document_highlight()
+                    end
+                end,
+            })
+
+            vim.api.nvim_create_autocmd('CursorHoldI', {
+                pattern = '<buffer>',
+                callback = function()
+                    if client.server_capabilities.documentHighlightProvider then
+                        vim.lsp.buf.document_highlight()
+                    end
+                end,
+            })
+
+            vim.api.nvim_create_autocmd('CursorMoved', {
+                pattern = '<buffer>',
+                callback = function()
+                    if client.server_capabilities.documentHighlightProvider then
+                        vim.lsp.buf.clear_references()
+                    end
+                end,
+            })
         end
 
         local capabilities = require('cmp_nvim_lsp').default_capabilities()
@@ -81,7 +108,7 @@ return {
         vim.api.nvim_create_autocmd('LspAttach', {
             desc = 'LSP actions',
             callback = function(event)
-                local opts = {buffer = event.buf}
+                local opts = { buffer = event.buf }
 
                 vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>', opts)
                 vim.keymap.set('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>', opts)
@@ -91,8 +118,11 @@ return {
                 vim.keymap.set('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>', opts)
                 vim.keymap.set('n', 'gs', '<cmd>lua vim.lsp.buf.signature_help()<cr>', opts)
                 vim.keymap.set('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
-                vim.keymap.set({'n', 'x'}, '<F3>', '<cmd>lua vim.lsp.buf.format({async = true})<cr>', opts)
+                vim.keymap.set({ 'n', 'x' }, '<F3>', '<cmd>lua vim.lsp.buf.format({async = true})<cr>', opts)
                 vim.keymap.set('n', '<leader>a', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
+
+                vim.lsp.codelens.refresh()
+                vim.lsp.inlay_hint.enable()
             end,
         })
 
@@ -109,11 +139,11 @@ return {
             end,
         })
 
-        require('copilot').setup({
-            suggestion = {enabled = false},
-            panel = {enabled = false},
-        })
-        require('copilot_cmp').setup()
+        -- require('copilot').setup({
+        -- suggestion = { enabled = false },
+        -- panel = { enabled = false },
+        -- })
+        -- require('copilot_cmp').setup()
 
         local kind_icons = {
             Text = ' ',
@@ -141,7 +171,7 @@ return {
             Event = ' ',
             Operator = ' ',
             TypeParameter = ' ',
-            Copilot = ' ',
+            -- Copilot = ' ',
             Path = ' ',
             Calc = '󰃬 ',
         }
@@ -154,11 +184,11 @@ return {
                 },
             },
             sources = {
-                {name = 'calc'},
-                {name = 'copilot'},
-                {name = 'nvim_lsp'},
-                {name = 'buffer'},
-                {name = 'path'},
+                { name = 'calc' },
+                -- { name = 'copilot' },
+                { name = 'nvim_lsp' },
+                { name = 'buffer' },
+                { name = 'path' },
             },
             mapping = cmp.mapping.preset.insert({
                 ['<CR>'] = cmp.mapping.confirm({
@@ -185,7 +215,7 @@ return {
                         luasnip = "[LuaSnip]",
                         nvim_lua = "[Lua]",
                         latex_symbols = "[LaTeX]",
-                        copilot = "[Copilot]",
+                        -- copilot = "[Copilot]",
                         path = "[Path]",
                         calc = "[Calc]",
                     })[entry.source.name]

@@ -52,10 +52,39 @@ require('jdtls').start_or_attach({
             },
         }
     },
+    on_attach = function(client, bufnr)
+        vim.api.nvim_create_autocmd('CursorHold', {
+            pattern = '<buffer>',
+            callback = function()
+                if client.server_capabilities.documentHighlightProvider then
+                    vim.lsp.buf.document_highlight()
+                end
+            end,
+        })
+
+        vim.api.nvim_create_autocmd('CursorHoldI', {
+            pattern = '<buffer>',
+            callback = function()
+                if client.server_capabilities.documentHighlightProvider then
+                    vim.lsp.buf.document_highlight()
+                end
+            end,
+        })
+
+        vim.api.nvim_create_autocmd('CursorMoved', {
+            pattern = '<buffer>',
+            callback = function()
+                if client.server_capabilities.documentHighlightProvider then
+                    vim.lsp.buf.clear_references()
+                end
+            end,
+        })
+    end,
     init_options = {
         bundles = {
             vim.fn.glob(
-            "/home/rodolfo/Downloads/java-debug/com.microsoft.java.debug.plugin/target/com.microsoft.java.debug.plugin-0.53.1.jar", true)
+                "/home/rodolfo/Downloads/java-debug/com.microsoft.java.debug.plugin/target/com.microsoft.java.debug.plugin-0.53.1.jar",
+                true)
         },
     },
 })
