@@ -43,3 +43,10 @@ vim.keymap.set("n", "<leader>i", "gg=G<C-o>")
 
 vim.keymap.set("v", "<", "<gv", { desc = "Dedent current selection" })
 vim.keymap.set("v", ">", ">gv", { desc = "Indent current selection" })
+
+vim.api.nvim_create_autocmd("BufWritePre", {
+    callback = function()
+        print('Formatting buffer')
+        vim.lsp.buf.format()
+    end,
+})

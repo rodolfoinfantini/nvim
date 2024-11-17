@@ -10,8 +10,8 @@ return {
         'hrsh7th/cmp-buffer',
         'hrsh7th/cmp-path',
         'onsails/lspkind.nvim',
-        'hrsh7th/cmp-calc',
         'SmiteshP/nvim-navic',
+        'hrsh7th/cmp-nvim-lsp-signature-help',
     },
     config = function()
         local navic = require("nvim-navic")
@@ -126,18 +126,12 @@ return {
             end,
         })
 
-        vim.api.nvim_create_autocmd("BufWritePre", {
-            pattern = "*.java",
-            callback = function()
-                require('jdtls').organize_imports()
-            end,
-        })
-        vim.api.nvim_create_autocmd("BufWritePre", {
-            pattern = "*",
-            callback = function()
-                vim.lsp.buf.format()
-            end,
-        })
+        -- vim.api.nvim_create_autocmd("BufWritePre", {
+        -- pattern = "*.java",
+        -- callback = function()
+        -- require('jdtls').organize_imports()
+        -- end,
+        -- })
 
         -- require('copilot').setup({
         -- suggestion = { enabled = false },
@@ -173,19 +167,24 @@ return {
             TypeParameter = ' ',
             -- Copilot = ' ',
             Path = ' ',
-            Calc = '󰃬 ',
         }
 
         local cmp = require('cmp')
         cmp.setup({
+            view = { docs = { auto_open = true } },
+            completion = {
+                completeopt = 'menu,menuone,noinsert',
+            },
+            performance = {
+                debounce = 0,
+                throttle = 0,
+            },
             window = {
-                completion = {
-                    border = 'single',
-                },
+                completion = cmp.config.window.bordered(),
+                documentation = cmp.config.window.bordered(),
             },
             sources = {
-                { name = 'calc' },
-                -- { name = 'copilot' },
+                { name = 'nvim_lsp_signature_help' },
                 { name = 'nvim_lsp' },
                 { name = 'buffer' },
                 { name = 'path' },
@@ -202,10 +201,6 @@ return {
             }),
             formatting = {
                 format = function(entry, vim_item)
-                    if entry.source.name == "calc" then
-                        vim_item.kind = "Calc"
-                    end
-
                     -- Kind icons
                     vim_item.kind = string.format(' %s%s', kind_icons[vim_item.kind], vim_item.kind) -- This concatenates the icons with the name of the item kind
                     -- Source
@@ -217,7 +212,6 @@ return {
                         latex_symbols = "[LaTeX]",
                         -- copilot = "[Copilot]",
                         path = "[Path]",
-                        calc = "[Calc]",
                     })[entry.source.name]
                     return vim_item
                 end

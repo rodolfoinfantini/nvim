@@ -3,7 +3,13 @@ local workspace_dir = '/home/rodolfo/.jdtls-data/' .. project_name
 local root_dir = vim.fs.dirname(vim.fs.find({ 'mvnw', 'gradlew', 'src', '.git' }, { upward = true })[1])
 print(root_dir)
 
+vim.api.nvim_create_user_command('OrganizeAllImports', function()
+    vim.cmd('n **/*.java')
+    vim.cmd("bufdo execute \"lua require('jdtls').organize_imports()\" | write")
+end, {})
+
 require('jdtls').start_or_attach({
+    capabilities = require("cmp_nvim_lsp").default_capabilities(),
     cmd = {
         'java',
         '-Declipse.application=org.eclipse.jdt.ls.core.id1',
