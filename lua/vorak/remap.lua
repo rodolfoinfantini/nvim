@@ -1,16 +1,16 @@
 -- Resize buffer easier
 vim.keymap.set("n", "<Left>", ":vertical resize -2<CR>", {
-        desc = "Resize buffer to the left",
-    })
+    desc = "Resize buffer to the left",
+})
 vim.keymap.set("n", "<Right>", ":vertical resize +2<CR>", {
-        desc = "Resize buffer to the right",
-    })
+    desc = "Resize buffer to the right",
+})
 vim.keymap.set("n", "<Up>", ":resize -2<CR>", {
-        desc = "Resize buffer to the top",
-    })
+    desc = "Resize buffer to the top",
+})
 vim.keymap.set("n", "<Down>", ":resize +2<CR>", {
-        desc = "Resize buffer to the bottom",
-    })
+    desc = "Resize buffer to the bottom",
+})
 -- Better movement between windows
 vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Go to the left window" })
 vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Go to the right window" })
@@ -44,9 +44,6 @@ vim.keymap.set("n", "<leader>i", "gg=G<C-o>")
 vim.keymap.set("v", "<", "<gv", { desc = "Dedent current selection" })
 vim.keymap.set("v", ">", ">gv", { desc = "Indent current selection" })
 
-vim.api.nvim_create_autocmd("BufWritePre", {
-    callback = function()
-        print('Formatting buffer')
-        vim.lsp.buf.format()
-    end,
-})
+vim.keymap.set('n', "<Esc>", "<cmd>nohls<CR>", { silent = true })
+
+vim.keymap.set("n", "<leader>r", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])

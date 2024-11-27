@@ -108,7 +108,7 @@ return {
         vim.api.nvim_create_autocmd('LspAttach', {
             desc = 'LSP actions',
             callback = function(event)
-                local opts = { buffer = event.buf }
+                local opts = { buffer = event.buf, silent = true }
 
                 vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>', opts)
                 vim.keymap.set('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>', opts)
@@ -123,6 +123,18 @@ return {
 
                 vim.lsp.codelens.refresh()
                 vim.lsp.inlay_hint.enable()
+            end,
+        })
+
+        vim.api.nvim_create_autocmd("BufWritePre", {
+            callback = function()
+                local lsp = vim.lsp.get_clients()[1].name
+                if lsp == 'jdtls' then
+                    require('jdtls').organize_imports()
+                    vim.cmd('sleep 100m')
+                end
+
+                vim.lsp.buf.format()
             end,
         })
 
