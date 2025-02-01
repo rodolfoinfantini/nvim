@@ -1,7 +1,5 @@
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
 local workspace_dir = '/home/rodolfo/.jdtls-data/' .. project_name
-local root_dir = vim.fs.dirname(vim.fs.find({ 'mvnw', 'gradlew', 'src', '.git' }, { upward = true })[1])
-print(root_dir)
 
 vim.api.nvim_create_user_command('OrganizeAllImports', function()
     vim.cmd('n **/*.java')
@@ -26,7 +24,8 @@ require('jdtls').start_or_attach({
         '-configuration', '/usr/share/java/jdtls/config_linux',
         '-data', workspace_dir
     },
-    root_dir = vim.fs.dirname(vim.fs.find({ 'pom.xml', 'mvnw', 'gradlew', 'build.xml', '.git' }, { upward = true })[1]),
+    root_dir = vim.fs.dirname(vim.fs.find({ 'pom.xml', 'mvnw', 'gradlew', 'build.xml', '.git' },
+        { upward = true })[1]),
     settings = {
         java = {
             signatureHelp = { enabled = true },

@@ -1,5 +1,0 @@
-namespace @CS_NAMESPACE@;
-
-public sealed class @FILENAME@ {
-
-}

@@ -1,0 +1,13 @@
+using Microsoft.AspNetCore.Mvc;
+using @CS_SERVICE_IMPORT@;
+
+namespace @CS_NAMESPACE@;
+
+[ApiController]
+[Route("/api/v1/@CS_FEATURE_NAME@")]
+public sealed class @FILENAME@(
+    @CS_SERVICE_PARAM@,
+    ILogger<@FILENAME@> logger) : ControllerBase
+{
+
+}

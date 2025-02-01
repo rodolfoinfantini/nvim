@@ -1,6 +1,6 @@
 namespace @CS_NAMESPACE@;
 
-public enum @FILENAME@
+public sealed class @FILENAME@
 {
 
 }
