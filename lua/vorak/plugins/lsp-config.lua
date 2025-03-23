@@ -48,6 +48,9 @@ return {
         require('mason-lspconfig').setup({
             handlers = {
                 function(server_name)
+                    if server_name == 'jdtls' then
+                        return
+                    end
                     lsp[server_name].setup({
                         capabilities = capabilities,
                         on_attach = on_attach

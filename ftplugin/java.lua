@@ -15,13 +15,14 @@ require('jdtls').start_or_attach({
         '-Declipse.product=org.eclipse.jdt.ls.core.product',
         '-Dlog.protocol=true',
         '-Dlog.level=ALL',
-        '-javaagent:/usr/share/java/jdtls/lombok.jar',
+        '-javaagent:/home/rodolfo/.local/share/nvim/mason/packages/jdtls/lombok.jar',
         '-Xmx4g',
         '--add-modules=ALL-SYSTEM',
         '--add-opens', 'java.base/java.util=ALL-UNNAMED',
         '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-        '-jar', '/usr/share/java/jdtls/plugins/org.eclipse.equinox.launcher_1.6.900.v20240613-2009.jar',
-        '-configuration', '/usr/share/java/jdtls/config_linux',
+        '-jar',
+        '/home/rodolfo/.local/share/nvim/mason/packages/jdtls/plugins/org.eclipse.equinox.launcher_1.6.900.v20240613-2009.jar',
+        '-configuration', '/home/rodolfo/.local/share/nvim/mason/packages/jdtls/config_linux',
         '-data', workspace_dir
     },
     root_dir = vim.fs.dirname(vim.fs.find({ 'pom.xml', 'mvnw', 'gradlew', 'build.xml', '.git' },
@@ -85,11 +86,11 @@ require('jdtls').start_or_attach({
             end,
         })
     end,
-    init_options = {
-        bundles = {
-            vim.fn.glob(
-                "/home/rodolfo/Downloads/java-debug/com.microsoft.java.debug.plugin/target/com.microsoft.java.debug.plugin-0.53.1.jar",
-                true)
-        },
-    },
+    -- init_options = {
+    --     bundles = {
+    --         vim.fn.glob(
+    --             "/home/rodolfo/Downloads/java-debug/com.microsoft.java.debug.plugin/target/com.microsoft.java.debug.plugin-0.53.1.jar",
+    --             true)
+    --     },
+    -- },
 })
