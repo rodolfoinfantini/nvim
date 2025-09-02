@@ -1,59 +1,10 @@
 return {
     "seblj/roslyn.nvim",
-    ft = "cs",
-    init = function()
-        vim.api.nvim_create_autocmd({ "InsertLeave" }, {
-            pattern = "*",
-            callback = function()
-                local clients = vim.lsp.get_clients({ name = "roslyn" })
-                if not clients or #clients == 0 then
-                    return
-                end
-
-                local buffers = vim.lsp.get_buffers_by_client_id(clients[1].id)
-                for _, buf in ipairs(buffers) do
-                    vim.lsp.util._refresh("textDocument/diagnostic", { bufnr = buf })
-                end
-            end,
-        })
-
-        vim.api.nvim_create_user_command("CSFixUsings", function()
-            local bufnr = vim.api.nvim_get_current_buf()
-
-            local clients = vim.lsp.get_clients({ name = "roslyn" })
-            if not clients or vim.tbl_isempty(clients) then
-                vim.notify("Couldn't find client", vim.log.levels.ERROR, { title = "Roslyn" })
-                return
-            end
-
-            local client = clients[1]
-            local action = {
-                kind = "quickfix",
-                title = "Remove unnecessary usings",
-                data = {
-                    CustomTags = { "RemoveUnnecessaryImports" },
-                    TextDocument = { uri = vim.uri_from_bufnr(bufnr) },
-                    CodeActionPath = { "Remove unnecessary usings" },
-                    Range = {
-                        ["start"] = { line = 0, character = 0 },
-                        ["end"] = { line = 0, character = 0 },
-                    },
-                    UniqueIdentifier = "Remove unnecessary usings"
-                }
-            }
-
-            client.request("codeAction/resolve", action, function(err, resolved_action)
-                if err then
-                    vim.notify("Fix using directives failed " .. vim.inspect(err), vim.log.levels.ERROR,
-                        { title = "Roslyn" })
-                    return
-                end
-                vim.lsp.util.apply_workspace_edit(resolved_action.edit, client.offset_encoding)
-            end)
-        end, { desc = "Remove unnecessary using directives" })
-    end,
+    lazy = true,
+    ft = { "cs" },
     opts = {
         config = {
+            filetypes = { 'cs' },
             settings = {
                 ["csharp|inlay_hints"] = {
                     csharp_enable_inlay_hints_for_implicit_object_creation = true,
@@ -79,9 +30,89 @@ return {
                 },
                 ["csharp|completion"] = {
                     dotnet_show_completion_items_from_unimported_namespaces = true,
-                    dotnet_show_name_completion_suggestions = true
+                    dotnet_show_name_completion_suggestions = true,
+                    dotnet_provide_regex_completions = true
+                },
+                ["csharp|formatting"] = {
+                    dotnet_organize_imports_on_format = true
+                },
+                ["csharp|symbol_search"] = {
+                    dotnet_search_reference_assemblies = true
                 }
             },
+            on_attach = function(client, bufnr)
+                -- let client know we got this
+                client.server_capabilities = vim.tbl_deep_extend("force", client.server_capabilities, {
+                    semanticTokensProvider = {
+                        full = true,
+                    }
+                })
+
+                -- Save the original request method
+                local original_request = client.request
+
+                -- Override the client's request method
+                client.request = function(method, params, handler, ctx, config)
+                    -- Log all LSP requests to a file
+                    -- local log_file = io.open("/tmp/nvim_lsp_debug.log", "a")
+                    -- if log_file then
+                    --   log_file:write(string.format("\n=== LSP Client Request at %s ===\n", os.date()))
+                    --   log_file:write("method: " .. method .. "\n")
+                    --   log_file:write("params: " .. vim.inspect(params) .. "\n")
+                    --   log_file:write("================================\n")
+                    --   log_file:close()
+                    -- end
+
+                    if method == "textDocument/semanticTokens/full" then
+                        -- Modify the request to a range request covering the entire document
+
+                        -- Convert URI to buffer number
+                        local target_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
+
+                        -- Ensure the buffer is loaded
+                        if not vim.api.nvim_buf_is_loaded(target_bufnr) then
+                            vim.notify("[LSP] Buffer not loaded for URI: " .. params.textDocument.uri,
+                                vim.log.levels.WARN)
+                            return original_request(method, params, handler, ctx, config)
+                        end
+
+                        -- Get the total number of lines in the buffer
+                        local line_count = vim.api.nvim_buf_line_count(target_bufnr)
+
+                        -- Get the last line's content
+                        local last_line = vim.api.nvim_buf_get_lines(target_bufnr, line_count - 1, line_count, true)[1] or
+                        ""
+
+                        -- Calculate the end character (0-based index)
+                        local end_character = #last_line
+
+                        -- Construct the range
+                        local range = {
+                            start = { line = 0, character = 0 },
+                            ["end"] = { line = line_count - 1, character = end_character },
+                        }
+
+                        -- Construct the new params for the range request
+                        local new_params = {
+                            textDocument = params.textDocument,
+                            range = range,
+                        }
+
+                        -- Log the modification
+                        -- local log_file_range = io.open("/tmp/nvim_lsp_debug.log", "a")
+                        -- if log_file_range then
+                        --   log_file_range:write("Modified to 'textDocument/semanticTokens/range' with range: " .. vim.inspect(range) .. "\n")
+                        --   log_file_range:close()
+                        -- end
+
+                        -- Send the modified range request
+                        return original_request("textDocument/semanticTokens/range", new_params, handler, ctx, config)
+                    end
+
+                    -- Call the original request method for all other methods
+                    return original_request(method, params, handler, ctx, config)
+                end
+            end,
         },
     }
 }

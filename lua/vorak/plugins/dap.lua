@@ -1,11 +1,10 @@
 return {
     'mfussenegger/nvim-dap',
     dependencies = {
-        'rcarriga/nvim-dap-ui',
-        {
-            "theHamsta/nvim-dap-virtual-text",
-            opts = {},
-        },
+        "theHamsta/nvim-dap-virtual-text",
+        "neovim/nvim-lspconfig",
+        "igorlfs/nvim-dap-view",
+        "jay-babu/mason-nvim-dap.nvim",
     },
     keys = {
         { "<leader>d",  "",                                                            desc = "+debug",                 mode = { "n", "v" } },
@@ -33,7 +32,7 @@ return {
         local dap = require("dap")
         dap.adapters.coreclr = function(cb, config)
             print('Building project')
-            vim.fn.system('dotnet build')
+            vim.fn.system('dotnet build -c Debug')
             print('Build done')
             -- if config.preLaunchTask then vim.fn.system(config.preLaunchTask) end
             local adapter = {
@@ -44,15 +43,46 @@ return {
             cb(adapter)
         end
 
-        -- dap.configurations.cs = {
-        -- {
-        -- type = "coreclr",
-        -- name = "launch - netcoredbg",
-        -- request = "launch",
-        -- program = function()
-        -- return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
-        -- end,
-        -- },
-        -- }
+        dap.configurations.cs = {
+            {
+                type = "coreclr",
+                name = "launch - netcoredbg",
+                request = "launch",
+                env = "ASPNETCORE_ENVIRONMENT=Development",
+                args = {
+                    "/p:EnvironmentName=Development",
+                    "--environment=Development",
+                },
+                program = function()
+                    return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+                end,
+            },
+        }
+
+        require("nvim-dap-virtual-text").setup({
+            automatic_installation = true,
+            handlers = {
+                function(config)
+                    require("mason-nvim-dap").default_setup(config)
+                end,
+            },
+        })
+
+        local dapview = require("dap-view")
+        dapview.setup({
+            auto_toggle = true,
+            winbar = {
+                sections = { "watches", "scopes", "exceptions", "breakpoints", "threads", "repl", "console" },
+            },
+            switchbuf = "usetab",
+        })
+
+        vim.api.nvim_set_hl(0, "DapStopped", { ctermbg = 0, fg = "#1f1d2e", bg = "#f6c177" })
+        vim.fn.sign_define("DapStopped", {
+            text = "->",
+            texthl = "DapStopped",
+            linehl = "DapStopped",
+            numhl = "DapStopped",
+        })
     end
 }

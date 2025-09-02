@@ -1,64 +1,10 @@
 return {
     'neovim/nvim-lspconfig',
     dependencies = {
-        'williamboman/mason.nvim',
-        'williamboman/mason-lspconfig.nvim',
         'hrsh7th/nvim-cmp',
     },
     lazy = false,
     config = function()
-        local on_attach = function(client, bufnr)
-            vim.api.nvim_create_autocmd('CursorHold', {
-                pattern = '<buffer>',
-                callback = function()
-                    if client.server_capabilities.documentHighlightProvider then
-                        vim.lsp.buf.document_highlight()
-                    end
-                end,
-            })
-
-            vim.api.nvim_create_autocmd('CursorHoldI', {
-                pattern = '<buffer>',
-                callback = function()
-                    if client.server_capabilities.documentHighlightProvider then
-                        vim.lsp.buf.document_highlight()
-                    end
-                end,
-            })
-
-            vim.api.nvim_create_autocmd('CursorMoved', {
-                pattern = '<buffer>',
-                callback = function()
-                    if client.server_capabilities.documentHighlightProvider then
-                        vim.lsp.buf.clear_references()
-                    end
-                end,
-            })
-        end
-
-        require('mason').setup({
-            registries = {
-                "github:mason-org/mason-registry",
-                "github:Crashdummyy/mason-registry"
-            },
-        })
-
-        local lsp = require "lspconfig"
-        local capabilities = require('cmp_nvim_lsp').default_capabilities()
-        require('mason-lspconfig').setup({
-            handlers = {
-                function(server_name)
-                    if server_name == 'jdtls' then
-                        return
-                    end
-                    lsp[server_name].setup({
-                        capabilities = capabilities,
-                        on_attach = on_attach
-                    })
-                end,
-            },
-        })
-
         vim.api.nvim_create_autocmd('LspAttach', {
             desc = 'LSP actions',
             callback = function(event)
@@ -77,13 +23,19 @@ return {
 
                 vim.lsp.codelens.refresh()
                 vim.lsp.inlay_hint.enable()
+
+                for _, client in ipairs(vim.lsp.buf_get_clients()) do
+                    if client.name ~= 'GitHub Copilot' then
+                        require("workspace-diagnostics").populate_workspace_diagnostics(client, 0)
+                    end
+                end
             end,
         })
 
         vim.api.nvim_create_autocmd("BufWritePre", {
             callback = function()
-                local cur_lsp = vim.lsp.get_clients()[1].name
-                if cur_lsp == 'jdtls' then
+                local jdtls_client = vim.lsp.get_clients({ name = "jdtls" })
+                if #jdtls_client > 0 then
                     require('jdtls').organize_imports()
                     vim.cmd('sleep 100m')
                 end
@@ -91,6 +43,60 @@ return {
                 vim.lsp.buf.format()
 
                 vim.lsp.codelens.refresh()
+            end,
+        })
+
+        local handles = {}
+        vim.api.nvim_create_autocmd("User", {
+            pattern = "RoslynRestoreProgress",
+            callback = function(ev)
+                local token = ev.data.params[1]
+                local handle = handles[token]
+                if handle then
+                    handle:report({
+                        title = ev.data.params[2].state,
+                        message = ev.data.params[2].message,
+                    })
+                else
+                    handles[token] = require("fidget.progress").handle.create({
+                        title = ev.data.params[2].state,
+                        message = ev.data.params[2].message,
+                        lsp_client = {
+                            name = "roslyn",
+                        },
+                    })
+                end
+            end,
+        })
+
+        vim.api.nvim_create_autocmd("User", {
+            pattern = "RoslynRestoreResult",
+            callback = function(ev)
+                local handle = handles[ev.data.token]
+                handles[ev.data.token] = nil
+
+                if handle then
+                    handle.message = ev.data.err and ev.data.err.message or "Restore completed"
+                    handle:finish()
+                end
+            end,
+        })
+
+        vim.api.nvim_create_autocmd({ "InsertLeave" }, {
+            pattern = "*",
+            callback = function()
+                local clients = vim.lsp.get_clients({ name = "roslyn" })
+                if not clients or #clients == 0 then
+                    return
+                end
+
+                local client = clients[1]
+                local client_id = client.id
+                local buffers = vim.lsp.get_buffers_by_client_id(client_id)
+                for _, buf in ipairs(buffers) do
+                    local params = { textDocument = vim.lsp.util.make_text_document_params(buf) }
+                    client:request("textDocument/diagnostic", params, nil, buf)
+                end
             end,
         })
     end,
