@@ -16,10 +16,10 @@ return {
                 -- vim.keymap.set('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>', opts)
                 -- vim.keymap.set('n', 'go', '<cmd>lua vim.lsp.buf.type_definition()<cr>', opts)
                 -- vim.keymap.set('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>', opts)
-                -- vim.keymap.set('n', 'gs', '<cmd>lua vim.lsp.buf.signature_help()<cr>', opts)
+                vim.keymap.set('n', 'gs', '<cmd>lua vim.lsp.buf.signature_help()<cr>', opts)
                 vim.keymap.set('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
                 vim.keymap.set({ 'n', 'x' }, '<F3>', '<cmd>lua vim.lsp.buf.format({async = true})<cr>', opts)
-                vim.keymap.set('n', '<leader>a', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
+                vim.keymap.set({ 'n', 'v' }, '<leader>a', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
 
                 vim.lsp.codelens.refresh()
                 vim.lsp.inlay_hint.enable()
@@ -29,6 +29,42 @@ return {
                         require("workspace-diagnostics").populate_workspace_diagnostics(client, 0)
                     end
                 end
+
+                vim.api.nvim_create_autocmd('CursorHold', {
+                    pattern = '<buffer>',
+                    callback = function()
+                        for _, client in ipairs(vim.lsp.buf_get_clients()) do
+                            if client.server_capabilities.documentHighlightProvider then
+                                vim.lsp.buf.document_highlight()
+                                break
+                            end
+                        end
+                    end,
+                })
+
+                vim.api.nvim_create_autocmd('CursorHoldI', {
+                    pattern = '<buffer>',
+                    callback = function()
+                        for _, client in ipairs(vim.lsp.buf_get_clients()) do
+                            if client.server_capabilities.documentHighlightProvider then
+                                vim.lsp.buf.document_highlight()
+                                break
+                            end
+                        end
+                    end,
+                })
+
+                vim.api.nvim_create_autocmd('CursorMoved', {
+                    pattern = '<buffer>',
+                    callback = function()
+                        for _, client in ipairs(vim.lsp.buf_get_clients()) do
+                            if client.server_capabilities.documentHighlightProvider then
+                                vim.lsp.buf.clear_references()
+                                break
+                            end
+                        end
+                    end,
+                })
             end,
         })
 
